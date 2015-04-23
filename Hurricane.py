@@ -81,5 +81,122 @@ for i in range(0, size, 1):
                 timeTrack.append(time2-time1)
                 time1 =0
                 
-plt.hist(timeTrack)
+#plt.hist(timeTrack)
+#plt.title("Spin Up time in hours")
     
+#Calculate Time at cat 3 or above
+catTrack = []
+
+ID = storms[0][0]
+time1 = time2 =0
+size = len(storms)
+a=0
+for i in range(0, size, 1):
+    if storms[i][0] == ID:
+        if storms[i][7] >= 3:
+            if a == 0: #If first time looking at storm
+                time1 = storms[i][6]
+                a=1
+            else:
+                time2 = storms[i][6]
+            
+    else:
+        a=0
+        ID = storms[i][0]
+        if time2-time1 < 1000 and time2-time1>0: #function fails for single entry Storm !Ds
+            catTrack.append(time2-time1)
+            catTrack.append(storms[i-1][5])
+ #       catTrack.append(storms[i-1][5])
+        time1 = time2 = 0
+        if storms[i][7] >= 3:
+            if a == 0: #If first time looking at storm
+                time1 = storms[i][6]
+                a=1
+            else:
+                time2 = storms[i][6]
+         
+catSorted = np.reshape(catTrack, ((len(catTrack)/2,2)))
+#print catTrack
+plt.hist(catSorted[:,0] , bins = [1,2,3,4,5,6,7,8,9,10,11,12])
+plt.show()
+
+
+#Find histogram of cat time per decade
+aveHours = []
+i =1900
+temp = 0
+count =0
+
+for j in range(0, len(catTrack)/2+1,1):
+    if j ==len(catTrack)/2:
+        aveHours.append(temp/count)
+    elif catSorted[j,1] >= i and catSorted[j,1] <= i+10:
+        temp += catSorted[j,0]
+        count +=1
+    else:
+        if count != 0:
+            aveHours.append(temp/count)
+        i+=10
+        count = temp =0
+print aveHours
+            
+#Florida Coast
+            
+ID = storms[0][0]
+florida = np.zeros((11))
+size = len(storms)
+a=0
+
+for i in range(0, size, 1):
+    if storms[i][0] == ID:
+        if storms[i][1] >= 25 and storms[i][1] <= 30 and storms[i][2] <= -75 and storms[i][2] >= -80:
+            
+            if a == 0: #If first time looking at storm
+                florida[int(storms[i][5]/10)-190] += 1
+                a=1
+               
+            else:
+                a=0
+                
+    else:
+        ID =  storms[i][0]
+        if storms[i][1] >= 25 and storms[i][1] <= 30 and storms[i][2] <= -75 and storms[i][2] >= -80:
+            
+            if a == 0: #If first time looking at storm
+                florida[int(storms[i][5]/10)-190] += 1
+                a=1
+               
+            else:
+                a=0
+                
+                
+#Max Intensity at coast
+ID = storms[0][0]
+floridaCat = np.zeros((412,3))
+size = len(storms)
+a=0
+count =0
+
+for i in range(0, size, 1):
+    
+    if storms[i][0] == ID:
+        if storms[i][1] >= 25 and storms[i][1] <= 30 and storms[i][2] <= -75 and storms[i][2] >= -80:
+            
+            if storms[i][7]> floridaCat[count,2]: #If category is higher
+                floridaCat[count,0] = storms[i][1]
+                floridaCat[count,1] = storms[i][2]
+                floridaCat[count,2] = storms[i][7]
+                               
+            
+                
+    else:
+        ID =  storms[i][0]
+        count +=1
+    
+#There are a bunch of 0 rows in floridaCat, find and delete
+garbagePos =[]
+for i in range(0, 412,1):
+    if floridaCat[i,0]==0 and floridaCat[i,1]==0:
+        garbagePos.append(i)
+floridaCat = np.delete(floridaCat, (garbagePos), axis =0)        
+print floridaCat 
